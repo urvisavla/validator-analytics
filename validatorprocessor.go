@@ -67,6 +67,8 @@ func (p *ValidatorProcessor) Process(ctx context.Context, msg Message) error {
 			Name:      getValidatorName(nodeID),
 		}
 
+		p.Process(ctx, Message{Payload: v})
+
 		fmt.Printf("%s Ledger: %s Validator:%s\n", time.Now().ToTime(), v.SequenceNumber, v.Name)
 	}
 	return nil
