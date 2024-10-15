@@ -26,6 +26,10 @@ func NewLedgerMetadataReader(config *datastore.DataStoreConfig, historyArchiveUr
 	return &LedgerMetadataReader{processors: processors, dataStoreConfig: *config, historyArchiveURLs: historyArchiveUrls}, nil
 }
 
+func (adapter *LedgerMetadataReader) Subscribe(receiver Processor) {
+	adapter.processors = append(adapter.processors, receiver)
+}
+
 func (a *LedgerMetadataReader) Run(ctx context.Context) error {
 
 	historyArchive, err := historyarchive.NewArchivePool(a.historyArchiveURLs, historyarchive.ArchiveOptions{

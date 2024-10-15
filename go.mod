@@ -4,7 +4,9 @@ go 1.22.5
 
 require (
 	github.com/pelletier/go-toml v1.9.5
+	github.com/pkg/errors v0.9.1
 	github.com/stellar/go v0.0.0-20241014165641-64efc32000b8
+	github.com/zeromq/goczmq v4.1.0+incompatible
 )
 
 require (
@@ -40,7 +42,6 @@ require (
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
 	github.com/lib/pq v1.10.9 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus/client_golang v1.17.0 // indirect
 	github.com/prometheus/client_model v0.5.0 // indirect
