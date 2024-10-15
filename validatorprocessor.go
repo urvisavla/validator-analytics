@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"strconv"
 
@@ -38,10 +39,11 @@ var validators = map[string]string{
 }
 
 type Validator struct {
-	SequenceNumber string
-	NodeId         string
-	Signature      string
-	Name           string
+	SequenceNumber string `json:"sequence_number"`
+	NodeId         string `json:"node_id"`
+	Signature      string `json:"signature"`
+	Name           string `json:"name"`
+	CloseTime      int64  `json:"close_time"`
 }
 
 type Processor interface {
@@ -49,6 +51,7 @@ type Processor interface {
 }
 
 type ValidatorProcessor struct {
+	outboundAdapter Processor
 }
 
 func (p *ValidatorProcessor) Process(ctx context.Context, msg Message) error {
@@ -61,13 +64,20 @@ func (p *ValidatorProcessor) Process(ctx context.Context, msg Message) error {
 			return err
 		}
 		signature := base64.StdEncoding.EncodeToString(LedgerCloseValueSignature.Signature)
-		v := Validator{SequenceNumber: strconv.Itoa(int(ledgerCloseMeta.LedgerSequence())),
+		validator := Validator{SequenceNumber: strconv.Itoa(int(ledgerCloseMeta.LedgerSequence())),
 			NodeId:    nodeID,
 			Signature: signature,
 			Name:      getValidatorName(nodeID),
+			CloseTime: ledgerCloseMeta.LedgerCloseTime(),
+		}
+		fmt.Printf("%s Ledger: %s Validator:%s\n", time.Now().ToTime(), validator.SequenceNumber, validator.Name)
+
+		validatorJSON, err := json.Marshal(validator)
+		if err != nil {
+			return err
 		}
 
-		fmt.Printf("%s Ledger: %s Validator:%s\n", time.Now().ToTime(), v.SequenceNumber, v.Name)
+		p.outboundAdapter.Process(ctx, Message{Payload: validatorJSON})
 	}
 	return nil
 }
