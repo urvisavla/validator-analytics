@@ -10,10 +10,21 @@ import (
 	"github.com/pelletier/go-toml"
 	"github.com/stellar/go/network"
 	"github.com/stellar/go/support/datastore"
+	"github.com/zeromq/goczmq"
 )
 
 type Message struct {
 	Payload interface{}
+}
+
+// Ingestion Pipeline Processors
+type ZeroMQOutboundAdapter struct {
+	Publisher *goczmq.Sock
+}
+
+func (adapter *ZeroMQOutboundAdapter) Process(ctx context.Context, msg Message) error {
+	_, err := adapter.Publisher.Write(msg.Payload.([]byte))
+	return err
 }
 
 func main() {
@@ -31,7 +42,16 @@ func main() {
 		fmt.Printf("error unmarshalling TOML config: %v\n", err)
 		return
 	}
-	processors := []Processor{&ValidatorProcessor{}}
+	publisher, err := goczmq.NewPub("tcp://127.0.0.1:5555")
+	if err != nil {
+		log.Printf("error creating 0MQ publisher: %v\n", err)
+		return
+	}
+	defer publisher.Destroy()
+
+	outboundAdapter := &ZeroMQOutboundAdapter{Publisher: publisher}
+
+	processors := []Processor{&ValidatorProcessor{outboundAdapter: outboundAdapter}}
 
 	reader, err := NewLedgerMetadataReader(&datastoreConfig, network.PublicNetworkhistoryArchiveURLs, processors)
 	if err != nil {
