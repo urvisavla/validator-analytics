@@ -1,14 +1,9 @@
 package main
 
 import (
-	"context"
-	"encoding/base64"
-	"encoding/json"
 	"fmt"
-	"strconv"
 
 	"github.com/stellar/go/strkey"
-	"github.com/stellar/go/support/time"
 	"github.com/stellar/go/xdr"
 )
 
@@ -36,50 +31,6 @@ var validators = map[string]string{
 	"GD6SZQV3WEJUH352NTVLKEV2JM2RH266VPEM7EH5QLLI7ZZAALMLNUVN": "Whalestack LLC",
 	"GADLA6BJK6VK33EM2IDQM37L5KGVCY5MSHSHVJA4SCNGNUIEOTCR6J5T": "Whalestack LLC",
 	"GAZ437J46SCFPZEDLVGDMKZPLFO77XJ4QVAURSJVRZK2T5S7XUFHXI2Z": "Whalestack LLC",
-}
-
-type Validator struct {
-	SequenceNumber string `json:"sequence_number"`
-	NodeId         string `json:"node_id"`
-	Signature      string `json:"signature"`
-	Name           string `json:"name"`
-	CloseTime      int64  `json:"close_time"`
-}
-
-type Processor interface {
-	Process(context.Context, Message) error
-}
-
-type ValidatorProcessor struct {
-	outboundAdapter Processor
-}
-
-func (p *ValidatorProcessor) Process(ctx context.Context, msg Message) error {
-	ledgerCloseMeta := msg.Payload.(xdr.LedgerCloseMeta)
-	ledgerHeader := ledgerCloseMeta.V1.LedgerHeader.Header
-	LedgerCloseValueSignature, ok := ledgerHeader.ScpValue.Ext.GetLcValueSignature()
-	if ok {
-		nodeID, err := getAddress(LedgerCloseValueSignature.NodeId)
-		if err != nil {
-			return err
-		}
-		signature := base64.StdEncoding.EncodeToString(LedgerCloseValueSignature.Signature)
-		validator := Validator{SequenceNumber: strconv.Itoa(int(ledgerCloseMeta.LedgerSequence())),
-			NodeId:    nodeID,
-			Signature: signature,
-			Name:      getValidatorName(nodeID),
-			CloseTime: ledgerCloseMeta.LedgerCloseTime(),
-		}
-		fmt.Printf("%s Ledger: %s Validator:%s\n", time.Now().ToTime(), validator.SequenceNumber, validator.Name)
-
-		validatorJSON, err := json.Marshal(validator)
-		if err != nil {
-			return err
-		}
-
-		p.outboundAdapter.Process(ctx, Message{Payload: validatorJSON})
-	}
-	return nil
 }
 
 func getValidatorName(nodeID string) string {
