@@ -17,7 +17,6 @@ type Message struct {
 	Payload interface{}
 }
 
-// Ingestion Pipeline Processors
 type ZeroMQOutboundAdapter struct {
 	Publisher *goczmq.Sock
 }
@@ -51,7 +50,7 @@ func main() {
 
 	outboundAdapter := &ZeroMQOutboundAdapter{Publisher: publisher}
 
-	processors := []Processor{&ValidatorProcessor{outboundAdapter: outboundAdapter}}
+	processors := []Processor{&processor{outboundAdapter: outboundAdapter}}
 
 	reader, err := NewLedgerMetadataReader(&datastoreConfig, network.PublicNetworkhistoryArchiveURLs, processors)
 	if err != nil {
