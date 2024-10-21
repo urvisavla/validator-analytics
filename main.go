@@ -15,7 +15,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/stellar/go/network"
 	"github.com/stellar/go/support/datastore"
-	"github.com/zeromq/goczmq"
 )
 
 type Config struct {
@@ -46,13 +45,9 @@ type Message struct {
 	Payload interface{}
 }
 
-type ZeroMQOutboundAdapter struct {
-	Publisher *goczmq.Sock
-}
-
-func (adapter *ZeroMQOutboundAdapter) Process(ctx context.Context, msg Message) error {
-	_, err := adapter.Publisher.Write(msg.Payload.([]byte))
-	return err
+type OutboundAdapter interface {
+	Write(ctx context.Context, msg Message) error
+	Close()
 }
 
 var registry = prometheus.NewRegistry()
@@ -81,12 +76,12 @@ var LedgerClosed = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 )
 
 func init() {
-
 	registry.MustRegister(LedgerClosed)
 	registry.MustRegister(OperationsTotal)
 	registry.MustRegister(OperationsByCategory)
 	fmt.Println("Prometheus metrics registered")
 }
+
 func main() {
 	cmdFlags := parseFlags()
 
@@ -110,23 +105,27 @@ func main() {
 		fmt.Printf("error unmarshalling TOML config: %v\n", err)
 		return
 	}
-	publisher, err := goczmq.NewPub("tcp://127.0.0.1:5555")
-	if err != nil {
-		log.Printf("error creating 0MQ publisher: %v\n", err)
-		return
-	}
-	defer publisher.Destroy()
 
-	outboundAdapter := &ZeroMQOutboundAdapter{Publisher: publisher}
-	writer, err := NewCSVWriter(cmdFlags.CSVPath, []string{"sequence_number", "node_id", "signature", "name", "close_time", "operations", "network"})
+	// Create and register outbound adapters
+	var outboundAdapters []OutboundAdapter
+	zeroMQOutboundAdapter, err := NewZeroMQOutboundAdapter()
 	if err != nil {
 		log.Printf("%v\n", err)
 		return
 	}
+	outboundAdapters = append(outboundAdapters, zeroMQOutboundAdapter)
+
+	if cmdFlags.EnableCSV {
+		writer, err := NewCSVWriter(cmdFlags.CSVPath)
+		if err != nil {
+			log.Printf("%v\n", err)
+			return
+		}
+		outboundAdapters = append(outboundAdapters, writer)
+	}
 
 	processors := []Processor{&processor{
-		outboundAdapter: outboundAdapter,
-		csvWriter:       writer,
+		outboundAdapters: outboundAdapters,
 	}}
 
 	reader, err := NewLedgerMetadataReader(
@@ -142,4 +141,7 @@ func main() {
 	}
 
 	log.Printf("ingestion pipeline ended %v\n", reader.Run(ctx))
+	for _, adapter := range outboundAdapters {
+		adapter.Close()
+	}
 }
