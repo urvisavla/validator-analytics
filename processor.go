@@ -28,6 +28,7 @@ type Processor interface {
 
 type processor struct {
 	outboundAdapter Processor
+	csvWriter       *CSVWriter
 }
 
 func updateMetrics(data Validator) {
@@ -106,6 +107,11 @@ func (p *processor) sendValidatorInfo(ctx context.Context, validator Validator) 
 	if err != nil {
 		return err
 	}
+	err = p.csvWriter.WriteJSON(validatorJSON)
+	if err != nil {
+		return err
+	}
+
 	updateMetrics(validator)
 	return p.outboundAdapter.Process(ctx, Message{Payload: validatorJSON})
 }

@@ -27,6 +27,9 @@ func NewLedgerMetadataReader(config *datastore.DataStoreConfig, historyArchiveUr
 }
 
 func (a *LedgerMetadataReader) Run(ctx context.Context) error {
+	//defer func() {
+	//	a.processors
+	//}()
 
 	historyArchive, err := historyarchive.NewArchivePool(a.historyArchiveURLs, historyarchive.ArchiveOptions{
 		ConnectOptions: storage.ConnectOptions{
@@ -43,7 +46,8 @@ func (a *LedgerMetadataReader) Run(ctx context.Context) error {
 		return errors.Wrap(err, "error getting latest ledger")
 	}
 
-	ledgerRange := ledgerbackend.UnboundedRange(latestNetworkLedger)
+	//ledgerRange := ledgerbackend.UnboundedRange(latestNetworkLedger)
+	ledgerRange := ledgerbackend.BoundedRange(54051061, 54051071)
 
 	pubConfig := cdp.PublisherConfig{
 		DataStoreConfig:       a.dataStoreConfig,

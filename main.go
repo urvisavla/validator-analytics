@@ -89,8 +89,16 @@ func main() {
 	defer publisher.Destroy()
 
 	outboundAdapter := &ZeroMQOutboundAdapter{Publisher: publisher}
+	writer, err := NewCSVWriter("temp.csv", []string{"sequence_number", "node_id", "signature", "name", "close_time", "operations", "network"})
+	if err != nil {
+		log.Printf("%v\n", err)
+		return
+	}
 
-	processors := []Processor{&processor{outboundAdapter: outboundAdapter}}
+	processors := []Processor{&processor{
+		outboundAdapter: outboundAdapter,
+		csvWriter:       writer,
+	}}
 
 	reader, err := NewLedgerMetadataReader(&datastoreConfig, network.PublicNetworkhistoryArchiveURLs, processors)
 	if err != nil {
