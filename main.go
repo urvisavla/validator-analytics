@@ -2,11 +2,13 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
+	"unsafe"
 
 	"github.com/pelletier/go-toml"
 	"github.com/prometheus/client_golang/prometheus"
@@ -15,6 +17,30 @@ import (
 	"github.com/stellar/go/support/datastore"
 	"github.com/zeromq/goczmq"
 )
+
+type Config struct {
+	StartLedger uint32
+	EndLedger   uint32
+	EnableCSV   bool
+	CSVPath     string
+	ConfigPath  string
+	MetricsPort int
+}
+
+// parseFlags parses command line arguments into a Config struct
+func parseFlags() *Config {
+	cfg := &Config{}
+
+	flag.UintVar((*uint)(unsafe.Pointer(&cfg.StartLedger)), "start-ledger", 0, "Starting ledger sequence number (0 means latest)")
+	flag.UintVar((*uint)(unsafe.Pointer(&cfg.EndLedger)), "end-ledger", 0, "Ending ledger sequence number (0 means unbounded)")
+	flag.BoolVar(&cfg.EnableCSV, "enable-csv", false, "Enable CSV output")
+	flag.StringVar(&cfg.CSVPath, "csv-path", "temp.csv", "Path to CSV output file")
+	flag.StringVar(&cfg.ConfigPath, "config", "config.toml", "Path to TOML configuration file")
+	flag.IntVar(&cfg.MetricsPort, "metrics-port", 8080, "Port for Prometheus metrics")
+
+	flag.Parse()
+	return cfg
+}
 
 type Message struct {
 	Payload interface{}
@@ -62,15 +88,18 @@ func init() {
 	fmt.Println("Prometheus metrics registered")
 }
 func main() {
+	cmdFlags := parseFlags()
+
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, os.Kill)
 	defer stop()
 
 	go func() {
+		metricsAddr := fmt.Sprintf(":%d", cmdFlags.MetricsPort)
 		http.Handle("/metrics", promhttp.HandlerFor(registry, promhttp.HandlerOpts{}))
-		http.ListenAndServe(":8080", nil)
+		http.ListenAndServe(metricsAddr, nil)
 	}()
 
-	cfg, err := toml.LoadFile("config.toml")
+	cfg, err := toml.LoadFile(cmdFlags.ConfigPath)
 	if err != nil {
 		fmt.Printf("%v\n", err)
 		return
@@ -89,7 +118,7 @@ func main() {
 	defer publisher.Destroy()
 
 	outboundAdapter := &ZeroMQOutboundAdapter{Publisher: publisher}
-	writer, err := NewCSVWriter("temp.csv", []string{"sequence_number", "node_id", "signature", "name", "close_time", "operations", "network"})
+	writer, err := NewCSVWriter(cmdFlags.CSVPath, []string{"sequence_number", "node_id", "signature", "name", "close_time", "operations", "network"})
 	if err != nil {
 		log.Printf("%v\n", err)
 		return
@@ -100,7 +129,13 @@ func main() {
 		csvWriter:       writer,
 	}}
 
-	reader, err := NewLedgerMetadataReader(&datastoreConfig, network.PublicNetworkhistoryArchiveURLs, processors)
+	reader, err := NewLedgerMetadataReader(
+		&datastoreConfig,
+		network.PublicNetworkhistoryArchiveURLs,
+		processors,
+		cmdFlags.StartLedger,
+		cmdFlags.EndLedger,
+	)
 	if err != nil {
 		fmt.Println(err)
 		return
