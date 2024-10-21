@@ -4,10 +4,13 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 
 	"github.com/pelletier/go-toml"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/stellar/go/network"
 	"github.com/stellar/go/support/datastore"
 	"github.com/zeromq/goczmq"
@@ -26,9 +29,46 @@ func (adapter *ZeroMQOutboundAdapter) Process(ctx context.Context, msg Message) 
 	return err
 }
 
+var registry = prometheus.NewRegistry()
+var namespace = "validator_bias"
+
+var OperationsTotal = prometheus.NewSummaryVec(
+	prometheus.SummaryOpts{
+		Namespace: namespace,
+		Name:      "total_operations",
+	},
+	[]string{"name", "node_id"},
+)
+var OperationsByCategory = prometheus.NewSummaryVec(
+	prometheus.SummaryOpts{
+		Namespace: namespace,
+		Name:      "operations_by_category",
+	},
+	[]string{"name", "node_id", "category"},
+)
+
+var LedgerClosed = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+	Namespace: namespace,
+	Name:      "latest_ledger_closed",
+},
+	[]string{"name", "node_id"},
+)
+
+func init() {
+
+	registry.MustRegister(LedgerClosed)
+	registry.MustRegister(OperationsTotal)
+	registry.MustRegister(OperationsByCategory)
+	fmt.Println("Prometheus metrics registered")
+}
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, os.Kill)
 	defer stop()
+
+	go func() {
+		http.Handle("/metrics", promhttp.HandlerFor(registry, promhttp.HandlerOpts{}))
+		http.ListenAndServe(":8080", nil)
+	}()
 
 	cfg, err := toml.LoadFile("config.toml")
 	if err != nil {
