@@ -103,11 +103,11 @@ func (p *processor) extractValidatorInfo(ledgerCloseMeta xdr.LedgerCloseMeta) (V
 // sendValidatorInfo marshals and sends the validator information.
 func (p *processor) sendValidatorInfo(ctx context.Context, validator Validator) error {
 	updateMetrics(validator)
-	for _, a := range p.outboundAdapters {
-		err := a.Write(ctx, Message{Payload: validator})
+	for _, adapter := range p.outboundAdapters {
+		err := adapter.Write(ctx, Message{Payload: validator})
 		if err != nil {
 			fmt.Println("Error sending Validator info to outbound adapter:", err)
-			return err
+			//	return err
 		}
 	}
 	return nil
