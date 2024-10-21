@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/stellar/go/ingest"
 	"github.com/stellar/go/network"
@@ -13,11 +14,11 @@ import (
 )
 
 type Validator struct {
-	SequenceNumber uint32     `json:"sequence_number"`
+	SequenceNumber string     `json:"sequence_number"`
 	NodeId         string     `json:"node_id"`
 	Signature      string     `json:"signature"`
 	Name           string     `json:"name"`
-	CloseTime      int64      `json:"close_time"`
+	CloseTime      string     `json:"close_time"`
 	Operations     Operations `json:"operations"`
 	Network        string     `json:"network"`
 }
@@ -32,7 +33,8 @@ type processor struct {
 }
 
 func updateMetrics(data Validator) {
-	LedgerClosed.WithLabelValues(data.Name, data.NodeId).Set(float64(data.SequenceNumber))
+	seqNum, _ := strconv.ParseUint(data.SequenceNumber, 10, 32)
+	LedgerClosed.WithLabelValues(data.Name, data.NodeId).Set(float64(seqNum))
 	OperationsTotal.WithLabelValues(data.Name, data.NodeId).Observe(float64(data.Operations.Total))
 
 	// Update operations by category
@@ -92,11 +94,11 @@ func (p *processor) extractValidatorInfo(ledgerCloseMeta xdr.LedgerCloseMeta) (V
 
 	signature := base64.StdEncoding.EncodeToString(LedgerCloseValueSignature.Signature)
 	return Validator{
-		SequenceNumber: ledgerCloseMeta.LedgerSequence(),
+		SequenceNumber: fmt.Sprintf("%d", ledgerCloseMeta.LedgerSequence()),
 		NodeId:         nodeID,
 		Signature:      signature,
 		Name:           getValidatorName(nodeID),
-		CloseTime:      ledgerCloseMeta.LedgerCloseTime(),
+		CloseTime:      fmt.Sprintf("%d", ledgerCloseMeta.LedgerCloseTime()),
 		Network:        network.PublicNetworkPassphrase,
 	}, nil
 }
