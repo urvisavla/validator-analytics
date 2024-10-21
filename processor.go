@@ -79,7 +79,7 @@ func (p *processor) createTransactionReader(ledgerCloseMeta xdr.LedgerCloseMeta)
 }
 
 func (p *processor) extractValidatorInfo(ledgerCloseMeta xdr.LedgerCloseMeta) (Validator, error) {
-	ledgerHeader := ledgerCloseMeta.V1.LedgerHeader.Header
+	ledgerHeader := ledgerCloseMeta.LedgerHeaderHistoryEntry().Header
 	LedgerCloseValueSignature, ok := ledgerHeader.ScpValue.Ext.GetLcValueSignature()
 	if !ok {
 		return Validator{}, fmt.Errorf("ledger close value signature not found")
