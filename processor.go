@@ -30,6 +30,16 @@ type processor struct {
 	outboundAdapter Processor
 }
 
+func updateMetrics(data Validator) {
+	LedgerClosed.WithLabelValues(data.Name, data.NodeId).Set(float64(data.SequenceNumber))
+	OperationsTotal.WithLabelValues(data.Name, data.NodeId).Observe(float64(data.Operations.Total))
+
+	// Update operations by category
+	for category, count := range data.Operations.Categories {
+		OperationsByCategory.WithLabelValues(data.Name, data.NodeId, category).Observe(float64(count))
+	}
+}
+
 func (p *processor) Process(ctx context.Context, msg Message) error {
 	ledgerCloseMeta, err := p.extractLedgerCloseMeta(msg)
 	if err != nil {
@@ -96,5 +106,6 @@ func (p *processor) sendValidatorInfo(ctx context.Context, validator Validator) 
 	if err != nil {
 		return err
 	}
+	updateMetrics(validator)
 	return p.outboundAdapter.Process(ctx, Message{Payload: validatorJSON})
 }
