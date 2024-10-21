@@ -1,7 +1,7 @@
 type = "GCS"
 
 [params]
-destination_bucket_path = "my-gcs-bucketname/prefix1/prefix2"
+destination_bucket_path = "sdf-ledger-close-meta/ledgers/pubnet"
 
 [schema]
 ledgers_per_file = 1

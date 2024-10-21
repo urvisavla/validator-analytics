@@ -1,25 +1,27 @@
 package main
 
 import (
+	"context"
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"os"
-	"sync"
+	"strconv"
 )
 
 type CSVWriter struct {
 	file    *os.File
 	writer  *csv.Writer
-	mutex   sync.Mutex
 	headers []string
 }
 
-func NewCSVWriter(filename string, headers []string) (*CSVWriter, error) {
+func NewCSVWriter(filename string) (*CSVWriter, error) {
 	file, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return nil, err
 	}
+
+	headers := []string{"sequence_number", "node_id", "signature", "name", "close_time", "operations", "network"}
 
 	writer := csv.NewWriter(file)
 	writer.Comma = ',' // Use comma as separator
@@ -35,22 +37,23 @@ func NewCSVWriter(filename string, headers []string) (*CSVWriter, error) {
 	}, nil
 }
 
-func (w *CSVWriter) WriteJSON(jsonData []byte) error {
-	w.mutex.Lock()
-	defer w.mutex.Unlock()
-
-	// Convert data to a map
-	var mapData map[string]interface{}
-	if err := json.Unmarshal(jsonData, &mapData); err != nil {
+func (w *CSVWriter) Write(ctx context.Context, msg Message) error {
+	validator := msg.Payload.(Validator)
+	operationsJSON, err := json.Marshal(validator.Operations)
+	if err != nil {
+		fmt.Println("Error marshaling operations to JSON:", err)
 		return err
 	}
 
 	// Prepare the row data
-	row := make([]string, len(w.headers))
-	for i, header := range w.headers {
-		if val, ok := mapData[header]; ok {
-			row[i] = fmt.Sprint(val)
-		}
+	row := []string{
+		strconv.Itoa(int(validator.SequenceNumber)),
+		validator.NodeId,
+		validator.Signature,
+		validator.Name,
+		strconv.FormatInt(validator.CloseTime, 10),
+		string(operationsJSON), // operations as json in CSV
+		validator.Network,
 	}
 
 	// Write the row
@@ -62,10 +65,8 @@ func (w *CSVWriter) WriteJSON(jsonData []byte) error {
 	return w.writer.Error()
 }
 
-func (w *CSVWriter) Close() error {
-	w.mutex.Lock()
-	defer w.mutex.Unlock()
-
+func (w *CSVWriter) Close() {
 	w.writer.Flush()
-	return w.file.Close()
+	err := w.file.Close()
+	fmt.Printf("error closing CSV file %v", err)
 }
