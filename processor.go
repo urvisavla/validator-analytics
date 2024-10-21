@@ -64,7 +64,7 @@ func (p *processor) Process(ctx context.Context, msg Message) error {
 		return err
 	}
 
-	fmt.Printf("%s Ledger: %d Validator: %s Operations:%v \n", time.Now().ToTime(), validator.SequenceNumber, validator.Name, validator.Operations)
+	fmt.Printf("%s Ledger: %s Validator: %s Operations:%v \n", time.Now().ToTime(), validator.SequenceNumber, validator.Name, validator.Operations)
 	return p.sendValidatorInfo(ctx, validator)
 }
 
