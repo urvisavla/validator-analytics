@@ -14,7 +14,7 @@ Additionally, you'll need a GCS bucket containing ledger data and local Google c
 ## Setup
 1. Checkout:  `git clone git@github.com:urvisavla/validator-analytics.git` 
 3. Build: `sh go build -o validator-info`
-4. Modify the destination_bucket_path in the config.toml file to specify the GCS bucket containing the ledger metadata.
+4. Modify the `destination_bucket_path` in the `config.toml` file to specify the GCS bucket containing the ledger metadata.
 5. Run: `./validator-info`
 This will begin streaming data about ledgers as they are finalized on the network, starting with the most recent checkpoint.
 
