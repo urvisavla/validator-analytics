@@ -19,7 +19,7 @@ Additionally, you'll need a GCS bucket containing ledger data and local Google c
 This will begin streaming data about ledgers as they are finalized on the network, starting with the most recent checkpoint.
 
 6. To fetch historical data, run following. This writes data to temp.csv file:
-   `./validator-info --start-ledger 49715711 --end-ledger 49715721`
+   `./validator-info --start-ledger 49715711 --end-ledger 49715721 --enable-csv`
 
 7. Install python 3.11
 8. `sh pip3 install -r requirements.txt`
