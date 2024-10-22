@@ -1,14 +1,18 @@
-# cdp-hackathon
+# Validator Analytics Tool
+
+This tool aims to monitor and visualize [validator](https://developers.stellar.org/docs/validators) behavior on the Stellar network by leveraging existing CDP components such as the data lake of Stellar ledger data created by [Galexie](https://github.com/stellar/go/tree/master/services/galexie) and stellar [ingestion](https://github.com/stellar/go/tree/master/ingest) sdk. 
+
+## Prequisites:
+To use this tool, you'll need Go, Python, and other programs like ZeroMQ and Jupyter Notebook. 
+Additionally, you'll need a GCS bucket containing ledger data and local Google credentials to access it.
 
 ## Setup
+1. Update the destination_bucket_path in config.toml
+2. `sh go build -o validator-info`
+3. `./validator-info`
+It will begin streaming data about ledgers as they are finalized on the network, starting with the most recent checkpoint.
 
-1. Install Go
-2. Update the destination_bucket_path in config.toml
-3. `sh go build -o validator-info`
-4. `./validator-info`
-Above will fetch ledger close data and write data to stream
-
-To fetch historical data, run following. This writes data to temp.csv file:
+4. To fetch historical data, run following. This writes data to temp.csv file:
    `./validator-info --start-ledger 49715711 --end-ledger 49715721`
 
 5. Install python 3.11
