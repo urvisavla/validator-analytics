@@ -1,6 +1,11 @@
 # Validator Analytics Tool
 
-This tool aims to monitor and visualize [validator](https://developers.stellar.org/docs/validators) behavior on the Stellar network by leveraging existing CDP components such as the data lake of Stellar ledger data created by [Galexie](https://github.com/stellar/go/tree/master/services/galexie) and stellar [ingestion](https://github.com/stellar/go/tree/master/ingest) sdk. 
+This tool is designed to monitor and analyze [validator](https://developers.stellar.org/docs/validators) behavior on the Stellar network to identify potential biases.
+It leverages existing CDP components such as the data lake of Stellar ledger metadata created by [Galexie](https://github.com/stellar/go/tree/master/services/galexie) and stellar [ingestion](https://github.com/stellar/go/tree/master/ingest) sdk. 
+
+
+![alt text](/architecture.png)
+
 
 ## Prequisites:
 To use this tool, you'll need Go, Python, and other programs like ZeroMQ and Jupyter Notebook. 
