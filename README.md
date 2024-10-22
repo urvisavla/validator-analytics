@@ -12,18 +12,19 @@ To use this tool, you'll need Go, Python, and other programs like ZeroMQ and Jup
 Additionally, you'll need a GCS bucket containing ledger data and local Google credentials to access it.
 
 ## Setup
-1. Update the destination_bucket_path in config.toml
-2. `sh go build -o validator-info`
-3. `./validator-info`
-It will begin streaming data about ledgers as they are finalized on the network, starting with the most recent checkpoint.
+1. Checkout:  `git clone git@github.com:urvisavla/validator-analytics.git` 
+3. Build: `sh go build -o validator-info`
+4. Modify the destination_bucket_path in the config.toml file to specify the GCS bucket containing the ledger metadata.
+5. Run: `./validator-info`
+This will begin streaming data about ledgers as they are finalized on the network, starting with the most recent checkpoint.
 
-4. To fetch historical data, run following. This writes data to temp.csv file:
+6. To fetch historical data, run following. This writes data to temp.csv file:
    `./validator-info --start-ledger 49715711 --end-ledger 49715721`
 
-5. Install python 3.11
-6. `sh pip3 install -r requirements.txt`
-7. Run Jupyter notebook using `sh python3 -m notebook`
-8. Run play button on the notebook.
+7. Install python 3.11
+8. `sh pip3 install -r requirements.txt`
+9. Run Jupyter notebook using `sh python3 -m notebook`
+10. Run play button on the notebook.
 Above will fetch data from stream and write metrics to `graph.html`
 
 
