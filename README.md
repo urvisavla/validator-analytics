@@ -17,7 +17,12 @@ To fetch historical data, run following. This writes data to temp.csv file:
 8. Run play button on the notebook.
 Above will fetch data from stream and write metrics to `graph.html`
 
-### Prometheus and grafana setup
+
+### Prometheus and grafana setup (Optional)
+You can view the metrics directly by visiting `http://localhost:8080/metrics` in your browser. You can export the metrics to Prometheus and visualize them using Grafana.
+We included a [grafana.json](https://github.com/urvisavla/validator-analytics/blob/main/dashboards/grafana.json) file with pre-built dashboard to help you get started.
+
+If you want to spin up a local instance of Prometheus and Grafana, follow the steps below. 
 
 1. Run following commands
 ```sh
