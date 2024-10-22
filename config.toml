@@ -1,0 +1,10 @@
+type = "GCS"
+
+[params]
+destination_bucket_path = "my-gcs-bucketname/prefix1/prefix2"
+
+[schema]
+ledgers_per_file = 1
+files_per_partition = 64000
+
+
