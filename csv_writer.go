@@ -21,7 +21,7 @@ func NewCSVWriter(filename string) (*CSVWriter, error) {
 		return nil, err
 	}
 
-	headers := []string{"sequence_number", "node_id", "signature", "name", "close_time", "operations", "network"}
+	headers := []string{"sequence_number", "node_id", "signature", "name", "close_time", "operations_json", "network"}
 
 	writer := csv.NewWriter(file)
 	writer.Comma = ',' // Use comma as separator

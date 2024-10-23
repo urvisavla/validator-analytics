@@ -33,7 +33,7 @@ func parseFlags() *Config {
 	flag.UintVar((*uint)(unsafe.Pointer(&cfg.StartLedger)), "start-ledger", 0, "Starting ledger sequence number (0 means latest)")
 	flag.UintVar((*uint)(unsafe.Pointer(&cfg.EndLedger)), "end-ledger", 0, "Ending ledger sequence number (0 means unbounded)")
 	flag.BoolVar(&cfg.EnableCSV, "enable-csv", false, "Enable CSV output")
-	flag.StringVar(&cfg.CSVPath, "csv-path", "temp.csv", "Path to CSV output file")
+	flag.StringVar(&cfg.CSVPath, "csv-path", "ledger_data.csv", "Path to CSV output file")
 	flag.StringVar(&cfg.ConfigPath, "config", "config.toml", "Path to TOML configuration file")
 	flag.IntVar(&cfg.MetricsPort, "metrics-port", 8080, "Port for Prometheus metrics")
 

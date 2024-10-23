@@ -10,29 +10,29 @@ import (
 func getOperationCategory(opType int) string {
 	// map for operation types
 	operationTypeMap := map[int]string{
-		0:  "Account Creation",
-		9:  "Account Creation",
-		1:  "Payments",
-		2:  "Payments",
-		13: "Payments",
-		3:  "Offers and AMMs",
-		4:  "Offers and AMMs",
-		12: "Offers and AMMs",
-		22: "Offers and AMMs",
-		23: "Offers and AMMs",
-		6:  "Trust",
-		7:  "Trust",
-		21: "Trust",
-		14: "Claimable Balances",
-		15: "Claimable Balances",
-		20: "Claimable Balances",
-		16: "Sponsorship",
-		17: "Sponsorship",
-		18: "Sponsorship",
+		0:  "account_creation",
+		9:  "account creation",
+		1:  "payments",
+		2:  "payments",
+		13: "payments",
+		3:  "offers_and_AMMs",
+		4:  "offers_and_AMMs",
+		12: "offers_and_AMMs",
+		22: "offers_and_AMMs",
+		23: "offers_and_AMMs",
+		6:  "trust",
+		7:  "trust",
+		21: "trust",
+		14: "claimable_balances",
+		15: "claimable_balances",
+		20: "claimable_balances",
+		16: "sponsorship",
+		17: "sponsorship",
+		18: "sponsorship",
 	}
 
 	if opType > 23 {
-		return "Soroban"
+		return "soroban"
 	}
 
 	// default to 'Other'
@@ -40,7 +40,7 @@ func getOperationCategory(opType int) string {
 		return val
 	}
 
-	return "Other"
+	return "other"
 }
 
 type Operations struct {

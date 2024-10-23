@@ -1,4 +1,4 @@
-module github.com/urvisavla/cdp-hackathon
+module github.com/urvisavla/validator-analytics
 
 go 1.22.5
 
